@@ -21,23 +21,17 @@ function App() {
 
   const analyzeLog = async () => {
     if (!logText.trim()) return;
-
     setLoading(true);
     setDiagnosis(null);
 
     try {
       const response = await fetch("http://127.0.0.1:8000/diagnose", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          log_text: logText,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ log_text: logText }),
       });
 
       const data = await response.json();
-
       setDiagnosis(data.diagnosis);
       setErrorExcerpt(data.error_excerpt);
     } catch (error) {
@@ -49,243 +43,393 @@ function App() {
 
   const copyCommand = async () => {
     if (!diagnosis?.fix_command) return;
-
     await navigator.clipboard.writeText(diagnosis.fix_command);
-
     setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-    setTimeout(() => {
-      setCopied(false);
-    }, 2000);
+  const formatConfidence = (score) => {
+    if (score <= 1) return Math.round(score * 100);
+    return score;
   };
 
   return (
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#020617",
+        background:
+          "radial-gradient(circle at top left, rgba(124,58,237,0.22), transparent 32%), radial-gradient(circle at top right, rgba(14,165,233,0.16), transparent 28%), #020617",
         color: "white",
-        padding: "50px",
-        fontFamily: "Arial",
+        padding: "42px",
+        fontFamily: "Inter, Arial, sans-serif",
       }}
     >
-      <h1
-        style={{
-          fontSize: "48px",
-          marginBottom: "10px",
-          fontWeight: "bold",
-        }}
-      >
-        BuildMedic
-      </h1>
-
-      <p
-        style={{
-          color: "#94a3b8",
-          marginBottom: "35px",
-          fontSize: "18px",
-        }}
-      >
-        AI-powered CI/CD failure diagnosis platform
-      </p>
-
-      <textarea
-        value={logText}
-        onChange={(e) => setLogText(e.target.value)}
-        placeholder="Paste failed GitHub Actions or CI/CD logs here..."
-        style={{
-          width: "100%",
-          height: "260px",
-          backgroundColor: "#172554",
-          color: "white",
-          border: "1px solid #334155",
-          borderRadius: "16px",
-          padding: "22px",
-          fontSize: "15px",
-          resize: "none",
-          marginBottom: "25px",
-          lineHeight: "1.6",
-        }}
-      />
-
-      <button
-        onClick={analyzeLog}
-        disabled={loading}
-        style={{
-          background:
-            "linear-gradient(to right, #7c3aed, #9333ea)",
-          color: "white",
-          border: "none",
-          padding: "15px 28px",
-          borderRadius: "12px",
-          fontSize: "16px",
-          cursor: "pointer",
-          marginBottom: "35px",
-          fontWeight: "bold",
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-        }}
-      >
-        {loading ? (
-          <>
+      <div style={{ maxWidth: "1120px", margin: "0 auto" }}>
+        <header
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.2fr 0.8fr",
+            gap: "28px",
+            alignItems: "center",
+            marginBottom: "28px",
+          }}
+        >
+          <div>
             <div
               style={{
-                width: "16px",
-                height: "16px",
-                border: "2px solid white",
-                borderTop: "2px solid transparent",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
+                display: "inline-block",
+                padding: "8px 14px",
+                borderRadius: "999px",
+                backgroundColor: "rgba(124,58,237,0.18)",
+                color: "#ddd6fe",
+                border: "1px solid rgba(167,139,250,0.45)",
+                fontSize: "13px",
+                fontWeight: "700",
+                marginBottom: "18px",
               }}
-            />
-            Analyzing Failure...
-          </>
-        ) : (
-          "Analyze Failure"
-        )}
-      </button>
+            >
+              AI CI/CD Debugging Assistant
+            </div>
 
-      <style>
-        {`
-          @keyframes spin {
-            from {
-              transform: rotate(0deg);
-            }
-            to {
-              transform: rotate(360deg);
-            }
-          }
-        `}
-      </style>
+            <h1
+              style={{
+                fontSize: "60px",
+                lineHeight: "0.95",
+                margin: "0 0 16px 0",
+                letterSpacing: "-2px",
+              }}
+            >
+              Diagnose failed builds in seconds.
+            </h1>
 
-      {diagnosis && (
-        <div
+            <p
+              style={{
+                color: "#a5b4fc",
+                fontSize: "18px",
+                lineHeight: "1.7",
+                maxWidth: "680px",
+                margin: 0,
+              }}
+            >
+              BuildMedic analyzes noisy CI/CD logs, extracts the real failure
+              signal, and returns root-cause summaries with terminal-ready fixes.
+            </p>
+          </div>
+
+          <div
+            style={{
+              backgroundColor: "rgba(15,23,42,0.78)",
+              border: "1px solid rgba(148,163,184,0.2)",
+              borderRadius: "22px",
+              padding: "22px",
+              boxShadow: "0 25px 80px rgba(0,0,0,0.35)",
+            }}
+          >
+            {[
+              ["Failure Types", "Dependencies, tests, config, deploys"],
+              ["AI Output", "Root cause, evidence, fix command"],
+              ["Next Upgrade", "GitHub Actions run import"],
+            ].map(([title, desc]) => (
+              <div
+                key={title}
+                style={{
+                  padding: "14px 0",
+                  borderBottom:
+                    title === "Next Upgrade"
+                      ? "none"
+                      : "1px solid rgba(148,163,184,0.14)",
+                }}
+              >
+                <div style={{ fontWeight: "700", marginBottom: "5px" }}>
+                  {title}
+                </div>
+                <div style={{ color: "#94a3b8", fontSize: "14px" }}>
+                  {desc}
+                </div>
+              </div>
+            ))}
+          </div>
+        </header>
+
+        <section
           style={{
-            backgroundColor: "#111827",
-            border: "1px solid #334155",
-            borderRadius: "18px",
-            padding: "35px",
+            backgroundColor: "rgba(15,23,42,0.88)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            borderRadius: "24px",
+            padding: "26px",
+            boxShadow: "0 28px 90px rgba(0,0,0,0.38)",
+            marginBottom: "30px",
           }}
         >
           <div
             style={{
-              display: "inline-block",
-              backgroundColor:
-                failureColors[diagnosis.failure_type] ||
-                "#64748b",
-              padding: "8px 16px",
-              borderRadius: "999px",
-              fontWeight: "bold",
-              marginBottom: "20px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "16px",
+              gap: "20px",
             }}
           >
-            {diagnosis.failure_type}
+            <div>
+              <h2 style={{ fontSize: "22px", margin: "0 0 6px 0" }}>
+                Analyze Build Failure
+              </h2>
+              <p style={{ color: "#64748b", margin: 0, fontSize: "14px" }}>
+                Paste your failed workflow output below.
+              </p>
+            </div>
+
+            <span
+              style={{
+                color: "#c4b5fd",
+                backgroundColor: "rgba(124,58,237,0.12)",
+                border: "1px solid rgba(167,139,250,0.3)",
+                borderRadius: "999px",
+                padding: "8px 13px",
+                fontSize: "13px",
+                fontWeight: "600",
+              }}
+            >
+              Manual Log Mode
+            </span>
           </div>
 
-          <h2
+          <textarea
+            value={logText}
+            onChange={(e) => setLogText(e.target.value)}
+            placeholder={`Paste failed GitHub Actions or CI/CD logs here...
+
+Example:
+npm ERR! ERESOLVE could not resolve
+Module not found: Can't resolve 'react-router-dom'
+Error: Process completed with exit code 1`}
             style={{
-              marginBottom: "20px",
-              fontSize: "32px",
+              width: "100%",
+              height: "285px",
+              boxSizing: "border-box",
+              backgroundColor: "#020617",
+              color: "#e5e7eb",
+              border: "1px solid #334155",
+              borderRadius: "18px",
+              padding: "20px",
+              fontSize: "15px",
+              resize: "vertical",
+              lineHeight: "1.65",
+              outline: "none",
+              marginBottom: "18px",
+              fontFamily: "monospace",
             }}
-          >
-            Diagnosis Result
-          </h2>
-
-          <p style={{ marginBottom: "15px" }}>
-            <strong>Confidence:</strong>{" "}
-            {diagnosis.confidence_score <= 1
-              ? Math.round(
-                  diagnosis.confidence_score * 100
-                )
-              : diagnosis.confidence_score}
-            %
-          </p>
-
-          <p style={{ marginBottom: "15px" }}>
-            <strong>Root Cause:</strong>{" "}
-            {diagnosis.root_cause}
-          </p>
-
-          <p style={{ marginBottom: "15px" }}>
-            <strong>Evidence:</strong>{" "}
-            {diagnosis.evidence}
-          </p>
-
-          <p style={{ marginBottom: "20px" }}>
-            <strong>Suggested Fix:</strong>{" "}
-            {diagnosis.suggested_fix}
-          </p>
+          />
 
           <div
             style={{
-              backgroundColor: "#020617",
-              borderRadius: "14px",
-              padding: "20px",
-              marginBottom: "30px",
-              border: "1px solid #1e293b",
-              position: "relative",
+              display: "grid",
+              gridTemplateColumns: "1fr auto",
+              alignItems: "center",
+              gap: "18px",
             }}
           >
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              {["Extracts key lines", "Classifies error", "Suggests fix"].map(
+                (item) => (
+                  <span
+                    key={item}
+                    style={{
+                      color: "#94a3b8",
+                      backgroundColor: "#020617",
+                      border: "1px solid #1e293b",
+                      borderRadius: "999px",
+                      padding: "8px 12px",
+                      fontSize: "13px",
+                    }}
+                  >
+                    {item}
+                  </span>
+                )
+              )}
+            </div>
+
             <button
-              onClick={copyCommand}
+              onClick={analyzeLog}
+              disabled={loading}
               style={{
-                position: "absolute",
-                top: "12px",
-                right: "12px",
-                backgroundColor: "#1e293b",
+                background: "linear-gradient(to right, #7c3aed, #a855f7)",
                 color: "white",
                 border: "none",
-                padding: "8px 12px",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontSize: "12px",
+                padding: "15px 26px",
+                borderRadius: "14px",
+                fontSize: "15px",
+                cursor: loading ? "not-allowed" : "pointer",
+                fontWeight: "800",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                minWidth: "170px",
+                justifyContent: "center",
+                boxShadow: "0 16px 40px rgba(124,58,237,0.38)",
               }}
             >
-              {copied ? "Copied!" : "Copy"}
+              {loading ? (
+                <>
+                  <div
+                    style={{
+                      width: "16px",
+                      height: "16px",
+                      border: "2px solid white",
+                      borderTop: "2px solid transparent",
+                      borderRadius: "50%",
+                      animation: "spin 1s linear infinite",
+                    }}
+                  />
+                  Analyzing...
+                </>
+              ) : (
+                "Analyze Failure"
+              )}
             </button>
-
-            <code
-              style={{
-                color: "#38bdf8",
-                fontSize: "16px",
-                fontFamily: "monospace",
-              }}
-            >
-              {diagnosis.fix_command}
-            </code>
           </div>
+        </section>
 
+        <style>
+          {`
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+          `}
+        </style>
+
+        {diagnosis && (
           <div
             style={{
-              backgroundColor: "#020617",
-              borderRadius: "14px",
-              padding: "20px",
-              border: "1px solid #1e293b",
+              backgroundColor: "rgba(17,24,39,0.95)",
+              border: "1px solid #334155",
+              borderRadius: "22px",
+              padding: "35px",
+              boxShadow: "0 25px 80px rgba(0,0,0,0.3)",
             }}
           >
-            <h3
+            <div
               style={{
-                marginBottom: "15px",
-                color: "#cbd5e1",
+                display: "inline-block",
+                backgroundColor:
+                  failureColors[diagnosis.failure_type] || "#64748b",
+                padding: "8px 16px",
+                borderRadius: "999px",
+                fontWeight: "bold",
+                marginBottom: "20px",
               }}
             >
-              Extracted Log Lines Analyzed
-            </h3>
+              {diagnosis.failure_type}
+            </div>
 
-            <pre
+            <h2 style={{ marginBottom: "25px", fontSize: "32px" }}>
+              Diagnosis Result
+            </h2>
+
+            <div
               style={{
-                whiteSpace: "pre-wrap",
-                color: "#94a3b8",
-                lineHeight: "1.6",
-                fontSize: "14px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "18px",
+                marginBottom: "28px",
+                textAlign: "left",
               }}
             >
-              {errorExcerpt}
-            </pre>
+              <div>
+                <strong style={{ display: "inline-block", width: "160px" }}>
+                  Confidence:
+                </strong>
+                {formatConfidence(diagnosis.confidence_score)}%
+              </div>
+
+              <div>
+                <strong style={{ display: "inline-block", width: "160px" }}>
+                  Root Cause:
+                </strong>
+                {diagnosis.root_cause}
+              </div>
+
+              <div>
+                <strong style={{ display: "inline-block", width: "160px" }}>
+                  Evidence:
+                </strong>
+                {diagnosis.evidence}
+              </div>
+
+              <div>
+                <strong style={{ display: "inline-block", width: "160px" }}>
+                  Suggested Fix:
+                </strong>
+                {diagnosis.suggested_fix}
+              </div>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: "#020617",
+                borderRadius: "14px",
+                padding: "20px",
+                marginBottom: "30px",
+                border: "1px solid #1e293b",
+                position: "relative",
+              }}
+            >
+              <button
+                onClick={copyCommand}
+                style={{
+                  position: "absolute",
+                  top: "12px",
+                  right: "12px",
+                  backgroundColor: "#1e293b",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  fontSize: "12px",
+                }}
+              >
+                {copied ? "Copied!" : "Copy"}
+              </button>
+
+              <code
+                style={{
+                  color: "#38bdf8",
+                  fontSize: "16px",
+                  fontFamily: "monospace",
+                }}
+              >
+                {diagnosis.fix_command}
+              </code>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: "#020617",
+                borderRadius: "14px",
+                padding: "20px",
+                border: "1px solid #1e293b",
+              }}
+            >
+              <h3 style={{ marginBottom: "15px", color: "#cbd5e1" }}>
+                Extracted Log Lines Analyzed
+              </h3>
+
+              <pre
+                style={{
+                  whiteSpace: "pre-wrap",
+                  color: "#94a3b8",
+                  lineHeight: "1.6",
+                  fontSize: "14px",
+                }}
+              >
+                {errorExcerpt}
+              </pre>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
